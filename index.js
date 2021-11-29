@@ -106,9 +106,9 @@ async function scrpe(browser, {
             const name = res.url().split("/").pop().split(".");
             const num = name.shift();
             const ext2 = name.pop();
-            const nameImg = Math.floor(Math.random() * 99999999999999999999);
+            // const nameImg = Math.floor(Math.random() * 99999999999999999999);
             const buff = await res.buffer();
-            const saveN = num + nameImg + "." + ext2;
+            const saveN = num /* +  nameImg */ + "." + ext2;
             logDev("Saving " + saveN);
             await save(buff, saveN);
         }
