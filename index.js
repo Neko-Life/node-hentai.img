@@ -5,7 +5,7 @@ const fs = require("fs");
 const { join } = require("path");
 const { terminal } = require("terminal-kit");
 
-const bot = puppeteer.launch({ headless: false });
+const bot = puppeteer.launch();
 /**
  * @type {import("nextgen-events")}
  */
@@ -19,25 +19,25 @@ bot.then((browser) => {
             console.log();
             if (e) {
                 console.error(e);
-                return setTimeout(run, 5000);
+                process.exit(1);
             } else if (buff === undefined)
                 process.exit();
             let args = buff.split(" ");
             let getArg = false;
-            if (args[0] === "exit")
+            if (args[0] === "exit" || args[0] === "cancel" || args[0] === "quit")
                 process.exit();
-            else if (args[0].startsWith("https://hentai-img.com/image")) {
+            else if (args[0].startsWith("https://hentai-img.com/image") || args[1]?.startsWith("https://hentai-img.com/image")) {
                 getArg = true;
                 run();
                 args = await getFromLink(browser, args);
             } else if (args[0] === "d") {
                 process.dev = !process.dev;
                 console.log("Debug " + (process.dev ? "enabled" : "disabled"));
-                return getArg ? null : run();
+                return run();
             } else if (!args[1] || !/^https:\/\//.test(args[1])) {
                 if (process.dev) console.log(args);
-                console.error("Invalid arguments. Should be `<dirname> <base URL> [startNum] [endNum]` or `<url> [startNum] [endNum]`");
-                return getArg ? null : run();
+                console.error("Invalid arguments. Should be `<dirname> <URL> [startNum] [endNum]` or `<URL> [startNum] [endNum]`");
+                return run();
             };
             getArg ? null : run();
             const data = {
@@ -53,9 +53,9 @@ bot.then((browser) => {
     run();
 });
 
-process.on("uncaughtException", (e, o) => {
-    console.error(e, o);
-});
+// process.on("uncaughtException", (e, o) => {
+//     logTerm("error",e, o);
+// });
 
 async function scrpe(browser, {
     SAVE_DIR = "./Saves/",
@@ -76,18 +76,29 @@ async function scrpe(browser, {
     let skipped = 0;
     let start = 0;
     let saved = 0;
+
+    try {
+        const files = fs.readdirSync(join(__dirname, SAVE_DIR));
+        logTerm("log", "CAUTION: DIR " + join(__dirname, SAVE_DIR) + " ALREADY EXIST!\nWITH FILES:");
+        for (const a of files)
+            logTerm("log", a);
+        logTerm("log", "EXIT IN 10 SECONDS IF UNINTENDED!");
+        await new Promise((r, j) => setTimeout(r, 10000));
+        logTerm("log", "STARTED DOWNLODING TO EXISTING DIRECTORY");
+    } catch { fs.mkdirSync(join(__dirname, SAVE_DIR), { recursive: true }); }
+
     const save = async (buff, output) => {
-        try { fs.readdirSync(join(__dirname, SAVE_DIR)); }
-        catch { fs.mkdirSync(join(__dirname, SAVE_DIR), { recursive: true }); }
         const pat = join(__dirname, SAVE_DIR + "/" + output);
-        fs.writeFile(pat, buff, null, e => e ? console.error(e) : logDev("Saved", pat));
+        fs.writeFile(pat, buff, null, e => e ? () => { console.error(e); process.exit(1) } : logDev("Saved", pat));
         saved++;
     }
+
     /**
      * @type {puppeteer.Page}
      */
     const page = await browser.newPage();
-    await page.setViewport({ width: 720, height: 480 });
+    await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
+    await page.setViewport({ width: 1366, height: 768 });
     page.on("response", async (res) => {
         if (res.request().resourceType() === "document") {
             if (!res.ok()) {
@@ -98,8 +109,7 @@ async function scrpe(browser, {
                     skipped++;
                     retried = 0;
                 }
-                if (ext === "jpg") ext = "png";
-                else if (ext === "png") ext = "jpg";
+                ext === "png" ? ext = "jpg" : ext = "png";
                 return;
             }
             retried = 0;
@@ -122,7 +132,7 @@ async function scrpe(browser, {
         try {
             await page.goto(baseURL + i + "." + ext);
         } catch (e) {
-            console.error(e);
+            logTerm("error", e);
             if (/Target closed\./.test(e.message))
                 break;
             i--;
@@ -130,7 +140,7 @@ async function scrpe(browser, {
         }
         await page.waitForTimeout(1000);
     }
-    logTerm("log", `------------------------------------------------------------------------------------------\n${page.url()}: STOPPED AT ${--i}\nSAVED ${saved} FILES FROM ${start} TO ${to}\nin "${SAVE_DIR}"\nwith URL "${baseURL}"\nCLOSING PAGE...\n------------------------------------------------------------------------------------------`);
+    logTerm("log", `\n------------------------------------------------------------------------------------------\n${page.url()}: STOPPED AT ${--i}\nSAVED ${saved} FILES FROM ${start} TO ${to}\nin "${SAVE_DIR}"\nwith URL "${baseURL}"\nCLOSING PAGE...\n------------------------------------------------------------------------------------------`);
     page.close();
 }
 
@@ -141,19 +151,34 @@ async function scrpe(browser, {
  */
 async function getFromLink(browser, args) {
     const page = await browser.newPage();
-    await page.setViewport({ width: 720, height: 420 });
+    await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
+    await page.setViewport({ width: 1366, height: 768 });
 
     const newArgs = [];
+    let url;
+    const nums = [];
 
-    const parsedUrl = args[0].replace(/\//g, " ").trim().split(" ");
-    newArgs[0] = parsedUrl[parsedUrl.length - 1];
+    if (args[1]?.startsWith("https://hentai-img.com/image")) {
+        url = args[1];
+        newArgs.push(args[0]);
+        nums.push(...args.slice(2));
+    } else {
+        url = args[0];
+        const parsedUrl = args[0].replace(/\//g, " ").trim().split(" ");
+        newArgs.push(parsedUrl.pop());
+        nums.push(...args.slice(1));
+    }
+
     async function go() {
         try {
-            await page.goto(args[0].replace("/image/", "/story/"));
+            await page.goto(url.replace("/image/", "/story/"));
         } catch (e) {
             if (e.message === "Navigation timeout of 30000 ms exceeded")
                 return go();
-            else logTerm("error", e);
+            else {
+                logTerm("error", e);
+                process.exit(1);
+            }
         }
     };
     await go();
@@ -164,7 +189,7 @@ async function getFromLink(browser, args) {
         return a.src;
     });
     newArgs[1] = get.slice(0, -5);
-    newArgs.push(...args.slice(1));
+    newArgs.push(...nums);
     page.close();
     return newArgs;
 }
