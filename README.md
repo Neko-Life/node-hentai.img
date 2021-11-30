@@ -15,6 +15,9 @@ Valid URL looks like `https://hentai-img.com/image/bless-this-wonderful-world--a
 Provide dirname as first argument to save in specified dir. 
 
 * Type `d` to Enable debug mode
-* Type `exit` or press `ESC` button to exit
+* Type `exit`, `cancel`, `quit` or press `ESC` button to exit
+
+
+* You can run `node . -h` to start and open the browser and see it in action
 
 Who doesn't love art right

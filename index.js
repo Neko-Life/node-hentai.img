@@ -4,53 +4,58 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const { join } = require("path");
 const { terminal } = require("terminal-kit");
-
-const bot = puppeteer.launch();
+const opts = {};
+if (process.argv.includes("-h"))
+    opts.headless = false;
+const bot = puppeteer.launch(opts);
 /**
  * @type {import("nextgen-events")}
  */
 let terminalInstance;
 
+function run(browser) {
+    terminal.brightGreen(" > ")
+    terminalInstance = terminal.inputField({ cancelable: true, style: terminal.brightYellow }, async (e, buff) => {
+        console.log();
+        if (e) {
+            console.error(e);
+            process.exit(1);
+        }
+        if (buff === undefined)
+            process.exit();
+        let args = buff.split(" ");
+        let getArg = false;
+        if (args[0] === "exit" || args[0] === "cancel" || args[0] === "quit")
+            process.exit();
+        else if (args[0].startsWith("https://hentai-img.com/image") || args[1]?.startsWith("https://hentai-img.com/image")) {
+            getArg = true;
+            run(browser);
+            args = await getFromLink(browser, args);
+        } else if (args[0] === "d") {
+            process.dev = !process.dev;
+            console.log("Debug " + (process.dev ? "enabled" : "disabled"));
+            return run(browser);
+        } else if (!args[1] || !/^https:\/\//.test(args[1])) {
+            if (process.dev) console.log(args);
+            console.error("Invalid arguments. Should be `<dirname> <URL> [startNum] [endNum]` or `<URL> [startNum] [endNum]`");
+            return run(browser);
+        };
+        getArg ? null : run(browser);
+        const data = {
+            SAVE_DIR: "./Saves/" + args[0],
+            baseURL: args[1].endsWith("/") ? args[1] : (args[1] + "/"),
+            i: args[2] ? parseInt(args[2]) : 1,
+            to: args[3] ? parseInt(args[3]) : 9999999,
+            ext: "jpg"
+        };
+        scrpe(browser, data);
+    });
+}
+
 bot.then((browser) => {
-    terminal.brightGreen("Ready");
-    function run() {
-        terminal.brightGreen(" > ")
-        terminalInstance = terminal.inputField({ cancelable: true, style: terminal.brightYellow }, async (e, buff) => {
-            console.log();
-            if (e) {
-                console.error(e);
-                process.exit(1);
-            } else if (buff === undefined)
-                process.exit();
-            let args = buff.split(" ");
-            let getArg = false;
-            if (args[0] === "exit" || args[0] === "cancel" || args[0] === "quit")
-                process.exit();
-            else if (args[0].startsWith("https://hentai-img.com/image") || args[1]?.startsWith("https://hentai-img.com/image")) {
-                getArg = true;
-                run();
-                args = await getFromLink(browser, args);
-            } else if (args[0] === "d") {
-                process.dev = !process.dev;
-                console.log("Debug " + (process.dev ? "enabled" : "disabled"));
-                return run();
-            } else if (!args[1] || !/^https:\/\//.test(args[1])) {
-                if (process.dev) console.log(args);
-                console.error("Invalid arguments. Should be `<dirname> <URL> [startNum] [endNum]` or `<URL> [startNum] [endNum]`");
-                return run();
-            };
-            getArg ? null : run();
-            const data = {
-                SAVE_DIR: "./Saves/" + args[0],
-                baseURL: args[1].endsWith("/") ? args[1] : (args[1] + "/"),
-                i: args[2] ? parseInt(args[2]) : 1,
-                to: args[3] ? parseInt(args[3]) : 9999999,
-                ext: "jpg"
-            };
-            scrpe(browser, data);
-        });
-    }
-    run();
+    terminal.brightGreen("Ready!");
+    console.log();
+    run(browser);
 });
 
 // process.on("uncaughtException", (e, o) => {
@@ -79,12 +84,20 @@ async function scrpe(browser, {
 
     try {
         const files = fs.readdirSync(join(__dirname, SAVE_DIR));
-        logTerm("log", "CAUTION: DIR " + join(__dirname, SAVE_DIR) + " ALREADY EXIST!\nWITH FILES:");
+        logTerm("log", "DIRECTORY", join(__dirname, SAVE_DIR), "ALREADY EXIST!");
         for (const a of files)
             logTerm("log", a);
-        logTerm("log", "EXIT IN 10 SECONDS IF UNINTENDED!");
-        await new Promise((r, j) => setTimeout(r, 10000));
-        logTerm("log", "STARTED DOWNLODING TO EXISTING DIRECTORY");
+        logTerm("log", "TYPE `yes` TO PROCEED AND SAVE IN THE EXISTING DIRECTORY!");
+        if (!await new Promise(async (r, j) => {
+            terminalInstance.abort();
+            terminal.brightRed(" > ");
+            terminal.inputField({ style: terminal.brightRed }, (e, a) => {
+                console.log();
+                run(browser);
+                r(a === "yes");
+            });
+        })) return;
+        logTerm("log", "DOWNLOADING TO EXISTING DIRECTORY...");
     } catch { fs.mkdirSync(join(__dirname, SAVE_DIR), { recursive: true }); }
 
     const save = async (buff, output) => {
@@ -150,6 +163,7 @@ async function scrpe(browser, {
  * @param {string[]} args 
  */
 async function getFromLink(browser, args) {
+    logTerm("log", "Gathering resources. Please wait...");
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
     await page.setViewport({ width: 1366, height: 768 });
@@ -170,6 +184,7 @@ async function getFromLink(browser, args) {
     }
 
     async function go() {
+        logDev("Fetching base URL...");
         try {
             await page.goto(url.replace("/image/", "/story/"));
         } catch (e) {
@@ -191,6 +206,7 @@ async function getFromLink(browser, args) {
     newArgs[1] = get.slice(0, -5);
     newArgs.push(...nums);
     page.close();
+    logTerm("log", "Resources gathered for", url);
     return newArgs;
 }
 
