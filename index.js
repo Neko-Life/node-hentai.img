@@ -148,6 +148,7 @@ async function scrpe(browser, {
         }
     });
     start = i;
+    let err = 0;
     for (i; i <= to; i++) {
         if (skipped > 5) {
             logDev(--skipped + " FAILED ATTEMPTS. CLOSING");
@@ -157,9 +158,13 @@ async function scrpe(browser, {
             await page.goto(baseURL + i + "." + ext);
         } catch (e) {
             logTerm("error", e);
+            if (err >= 10) process.exit(1);
             if (/Target closed\./.test(e.message))
                 break;
+            if (/page has been closed/.test(e.message))
+                break;
             i--;
+            err++;
             continue;
         }
         await page.waitForTimeout(1000);
