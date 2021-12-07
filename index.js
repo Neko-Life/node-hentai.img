@@ -52,10 +52,19 @@ function run(browser) {
     });
 }
 
-bot.then((browser) => {
+bot.then(async (browser) => {
     terminal.brightGreen("Ready!");
     console.log();
     run(browser);
+    if (!opts.headless) {
+        /**
+         * @type {puppeteer.Page}
+         */
+        const page = await browser.newPage();
+        await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
+        await page.setViewport({ width: 1366, height: 768 });
+        await page.goto("https://hentai-img.com/search/tag/gyaru/");
+    }
 });
 
 // process.on("uncaughtException", (e, o) => {
