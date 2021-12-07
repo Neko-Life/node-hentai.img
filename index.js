@@ -68,9 +68,9 @@ bot.then(async (browser) => {
 });
 
 process.on("uncaughtException", (e, o) => {
-    if (e.message === "Navigation timeout of 30000 ms exceeded")
-        logTerm("error", e, o);
-    else process.exit(1);
+    // if (e.message === "Navigation timeout of 30000 ms exceeded")
+    logTerm("error", e, o);
+    // else process.exit(1);
 });
 
 async function scrpe(browser, {
