@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "axios": "^0.26.1",
+    "fs": "^0.0.1-security",
     "puppeteer": "^10.4.0",
     "terminal-kit": "^2.2.3"
   },
