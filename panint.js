@@ -83,7 +83,9 @@ async function evalPage(page, type) {
         const gids = document.getElementsByClassName("item " + type);
         const l = [];
         for (const v of gids) {
-            l.push(v.lastElementChild.href);
+            const href = v.lastElementChild.href;
+            if (!href || l.includes(href)) continue;
+            l.push(href);
         }
         return l;
     }, [type]);
