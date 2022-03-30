@@ -1,11 +1,16 @@
 "use strict";
 
-const { readdirSync, mkdirSync, createWriteStream, existsSync } = require("fs");
+const { readdirSync, mkdirSync, createWriteStream } = require("fs");
 const pup = require("puppeteer");
 const axios = require("axios").default;
 
 const baseURI = "https://xxx.panintegral.tk/";
 const baseDir = "./panIntegral/";
+try {
+    readdirSync(baseDir);
+} catch (e) {
+    mkdirSync(baseDir);
+}
 
 const bot = pup.launch({ headless: !process.argv.includes("-d") });
 
@@ -24,11 +29,6 @@ bot.then(async browser => {
         return l;
     });
     const download = async (url) => {
-        try {
-            readdirSync(baseDir);
-        } catch (e) {
-            mkdirSync(baseDir);
-        }
         const parsedUrl = url.split(/\/+/);
         const dir = parsedUrl[parsedUrl.length - 2].replace("%20", " ");
         const save = parsedUrl[parsedUrl.length - 1].replace("%20", " ");
