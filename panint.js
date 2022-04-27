@@ -76,7 +76,7 @@ async function getSomething(page) {
  */
 async function evalPage(page, type) {
     return page.evaluate((type) => {
-        const gids = document.getElementsByClassName("item " + type);
+        const gids = document.getElementsByClassName(`item ${type}`);
         const l = [];
         for (const v of gids) {
             const href = v.lastElementChild.href;
