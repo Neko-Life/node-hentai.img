@@ -21,6 +21,7 @@ let terminalInstance;
 function run(browser) {
     terminal.brightGreen(" > ")
     terminalInstance = terminal.inputField({ cancelable: true, style: terminal.brightYellow }, async (e, buff) => {
+        console.log();
         if (e) {
             console.error(e);
             process.exit(1);
@@ -58,6 +59,7 @@ function run(browser) {
 
 bot.then(async (browser) => {
     terminal.brightGreen("Ready!");
+    console.log();
     run(browser);
     if (!opts.headless) {
         /**
@@ -106,6 +108,7 @@ async function scrpe(browser, {
             terminalInstance.abort();
             terminal.brightRed(" > ");
             terminal.inputField({ style: terminal.brightRed }, (e, a) => {
+                console.log();
                 run(browser);
                 r(a === "yes");
             });
