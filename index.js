@@ -1,13 +1,18 @@
 'use strict';
 
-const puppeteer = require("puppeteer");
-const fs = require("fs");
-const { join } = require("path");
-const { terminal } = require("terminal-kit");
-const opts = {};
+const puppeteer = require("puppeteer"),
+    fs = require("fs"),
+    { join } = require("path"),
+    { terminal } = require("terminal-kit"),
+    opts = {},
+    endKeywords = [ "exit", "cancel", "quit" ],
+    stuff = ["https://hentai-img.com", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36"];
+
 if (process.argv.includes("-h"))
     opts.headless = false;
+
 const bot = puppeteer.launch(opts);
+
 /**
  * @type {import("nextgen-events")}
  */
@@ -25,15 +30,15 @@ function run(browser) {
             process.exit();
         let args = buff.split(" ");
         let getArg = false;
-        if (args[0] === "exit" || args[0] === "cancel" || args[0] === "quit")
+        if (endKeywords.includes(args[0]))
             process.exit();
-        else if (args[0].startsWith("https://hentai-img.com/image") || args[1]?.startsWith("https://hentai-img.com/image")) {
+        else if (args[0].startsWith(`${stuff[0]}/image`) || args[1]?.startsWith(`${stuff[0]}/image`)) {
             getArg = true;
             run(browser);
             args = await getFromLink(browser, args);
         } else if (args[0] === "d") {
             process.dev = !process.dev;
-            console.log("Debug " + (process.dev ? "enabled" : "disabled"));
+            console.log(`"Debug ${(process.dev ? "enabled" : "disabled")}`);
             return run(browser);
         } else if (!args[1] || !/^https:\/\//.test(args[1])) {
             if (process.dev) console.log(args);
@@ -42,8 +47,8 @@ function run(browser) {
         };
         getArg ? null : run(browser);
         const data = {
-            SAVE_DIR: "./Saves/" + args[0],
-            baseURL: args[1].endsWith("/") ? args[1] : (args[1] + "/"),
+            SAVE_DIR: `./Saves/${args[0]}`,
+            baseURL: args[1].endsWith("/") ? args[1] : (`${args[1]}/`),
             i: args[2] ? parseInt(args[2]) : 1,
             to: args[3] ? parseInt(args[3]) : 9999999,
             ext: "jpg"
@@ -61,9 +66,9 @@ bot.then(async (browser) => {
          * @type {puppeteer.Page}
          */
         const page = await browser.newPage();
-        await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
+        await page.setUserAgent(stuff[1]);
         await page.setViewport({ width: 1366, height: 768 });
-        await page.goto("https://hentai-img.com/search/tag/erotic-paintings/");
+        await page.goto(`${stuff[0]}/search/tag/erotic-paintings/`);
     }
 });
 
@@ -87,17 +92,17 @@ async function scrpe(browser, {
         to,
         ext
     });
-    if (typeof baseURL !== "string") throw new TypeError("baseURL isn't string, got " + typeof baseURL);
-    let retried = 0;
-    let skipped = 0;
-    let start = 0;
-    let saved = 0;
+    if (typeof baseURL !== "string") throw new TypeError(`baseURL isn't string, got ${typeof baseURL}`);
+    let retried = 0,
+        skipped = 0,
+        start = 0,
+        saved = 0;
 
     try {
         const files = fs.readdirSync(join(__dirname, SAVE_DIR));
         logTerm("log", "DIRECTORY", join(__dirname, SAVE_DIR), "ALREADY EXIST!");
-        for (const a of files)
-            logTerm("log", a);
+        for (const file of files)
+            logTerm("log", file);
         logTerm("log", "TYPE `yes` TO PROCEED AND SAVE IN THE EXISTING DIRECTORY!");
         if (!await new Promise(async (r, j) => {
             terminalInstance.abort();
@@ -112,7 +117,7 @@ async function scrpe(browser, {
     } catch { fs.mkdirSync(join(__dirname, SAVE_DIR), { recursive: true }); }
 
     const save = async (buff, output) => {
-        const pat = join(__dirname, SAVE_DIR + "/" + output);
+        const pat = join(__dirname, `${SAVE_DIR}/${output}`);
         fs.writeFile(pat, buff, null, e => e ? () => { console.error(e); process.exit(1) } : logDev("Saved", pat));
         saved++;
     }
@@ -121,7 +126,7 @@ async function scrpe(browser, {
      * @type {puppeteer.Page}
      */
     const page = await browser.newPage();
-    await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
+    await page.setUserAgent(stuff[1]);
     await page.setViewport({ width: 1366, height: 768 });
     page.on("response", async (res) => {
         if (res.request().resourceType() === "document") {
@@ -142,8 +147,8 @@ async function scrpe(browser, {
             const ext2 = name.pop();
             // const nameImg = Math.floor(Math.random() * 99999999999999999999);
             const buff = await res.buffer();
-            const saveN = num /* +  nameImg */ + "." + ext2;
-            logDev("Saving " + saveN);
+            const saveN = `${num/* +  nameImg */}.${ext2}`;
+            logDev(`Saving ${saveN}`);
             await save(buff, saveN);
         }
     });
@@ -155,13 +160,11 @@ async function scrpe(browser, {
             break;
         }
         try {
-            await page.goto(baseURL + i + "." + ext);
+            await page.goto(`${baseURL}${i}.${ext}`);
         } catch (e) {
             logTerm("error", e);
             if (err >= 10) process.exit(1);
-            if (/Target closed\./.test(e.message))
-                break;
-            if (/page has been closed/.test(e.message))
+            if (/Target closed\./.test(e.message) || /page has been closed/.test(e.message))
                 break;
             i--;
             err++;
@@ -181,14 +184,14 @@ async function scrpe(browser, {
 async function getFromLink(browser, args) {
     logTerm("log", "Gathering resources. Please wait...");
     const page = await browser.newPage();
-    await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.0 Safari/537.36");
+    await page.setUserAgent(stuff[1]);
     await page.setViewport({ width: 1366, height: 768 });
 
     const newArgs = [];
     let url;
     const nums = [];
 
-    if (args[1]?.startsWith("https://hentai-img.com/image")) {
+    if (args[1]?.startsWith(`${stuff[0]}/image`)) {
         url = args[1];
         newArgs.push(args[0]);
         nums.push(...args.slice(2));

@@ -21,3 +21,7 @@ Provide dirname as first argument to save in specified dir.
 * You can run `node . -h` to start and open the browser and see it in action
 
 Who doesn't love art right
+
+## Showcase
+
+![](https://i.imgur.com/aJ7OTd3.gif)
