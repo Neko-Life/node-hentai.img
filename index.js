@@ -47,7 +47,7 @@ function run(browser) {
         };
         getArg ? null : run(browser);
         const data = {
-            SAVE_DIR: `"./Saves/${args[0]}`,
+            SAVE_DIR: `./Saves/${args[0]}`,
             baseURL: args[1].endsWith("/") ? args[1] : (`${args[1]}/`),
             i: args[2] ? parseInt(args[2]) : 1,
             to: args[3] ? parseInt(args[3]) : 9999999,
