@@ -65,8 +65,8 @@ bot.then(async browser => {
     }
 });
 
-async function getSomething(page) {
-    return evalPage(page, "file");
+async function getSomething(page, type) {
+    return evalPage(page, type);
 }
 
 /**
