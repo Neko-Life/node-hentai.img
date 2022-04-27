@@ -37,7 +37,7 @@ function run(browser) {
             args = await getFromLink(browser, args);
         } else if (args[0] === "d") {
             process.dev = !process.dev;
-            console.log("Debug " + (process.dev ? "enabled" : "disabled"));
+            console.log(`"Debug ${(process.dev ? "enabled" : "disabled")}`);
             return run(browser);
         } else if (!args[1] || !/^https:\/\//.test(args[1])) {
             if (process.dev) console.log(args);
@@ -46,8 +46,8 @@ function run(browser) {
         };
         getArg ? null : run(browser);
         const data = {
-            SAVE_DIR: "./Saves/" + args[0],
-            baseURL: args[1].endsWith("/") ? args[1] : (args[1] + "/"),
+            SAVE_DIR: `"./Saves/${args[0]}`,
+            baseURL: args[1].endsWith("/") ? args[1] : (`${args[1]}/`),
             i: args[2] ? parseInt(args[2]) : 1,
             to: args[3] ? parseInt(args[3]) : 9999999,
             ext: "jpg"
@@ -90,7 +90,7 @@ async function scrpe(browser, {
         to,
         ext
     });
-    if (typeof baseURL !== "string") throw new TypeError("baseURL isn't string, got " + typeof baseURL);
+    if (typeof baseURL !== "string") throw new TypeError(`baseURL isn't string, got ${typeof baseURL}`);
     let retried = 0,
         skipped = 0,
         start = 0,
@@ -114,7 +114,7 @@ async function scrpe(browser, {
     } catch { fs.mkdirSync(join(__dirname, SAVE_DIR), { recursive: true }); }
 
     const save = async (buff, output) => {
-        const pat = join(__dirname, SAVE_DIR + "/" + output);
+        const pat = join(__dirname, `${SAVE_DIR}/${output}`);
         fs.writeFile(pat, buff, null, e => e ? () => { console.error(e); process.exit(1) } : logDev("Saved", pat));
         saved++;
     }
@@ -144,8 +144,8 @@ async function scrpe(browser, {
             const ext2 = name.pop();
             // const nameImg = Math.floor(Math.random() * 99999999999999999999);
             const buff = await res.buffer();
-            const saveN = num /* +  nameImg */ + "." + ext2;
-            logDev("Saving " + saveN);
+            const saveN = `${num/* +  nameImg */}.${ext2}`;
+            logDev(`Saving ${saveN}`);
             await save(buff, saveN);
         }
     });
@@ -157,7 +157,7 @@ async function scrpe(browser, {
             break;
         }
         try {
-            await page.goto(baseURL + i + "." + ext);
+            await page.goto(`${baseURL}${i}.${ext}`);
         } catch (e) {
             logTerm("error", e);
             if (err >= 10) process.exit(1);
