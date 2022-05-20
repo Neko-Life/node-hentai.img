@@ -61,7 +61,7 @@ br.then(async browser => {
             mkdirSync(baseDir);
         }
         const parsedUrl = url.split(/\/+/);
-        const save = parsedUrl.pop().replace("%20", " ");
+        const save = parsedUrl.pop().replace(/%20/g, " ");
         if (ded.includes(save)) {
             urdone.push(url);
             continue;
