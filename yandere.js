@@ -7,7 +7,7 @@ const pup = require("puppeteer");
 const BASE_URL = "https://yande.re";
 const baseDir = "yandere";
 
-const br = pup.launch({ headless: true });
+const br = pup.launch({ headless: !argv.includes("-d") });
 let o = 0;
 
 const download = (url) => exec("cd yandere && wget --header 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0' '" + url + "'", (t, s, e) => {
@@ -51,10 +51,19 @@ br.then(async browser => {
         });
         if (urdone.includes(url)) continue;
 
+        let ded;
+
         try {
-            readdirSync(baseDir);
+            ded = readdirSync(baseDir);
         } catch (e) {
+            ded = [];
             mkdirSync(baseDir);
+        }
+        const parsedUrl = url.split(/\/+/);
+        const save = parsedUrl.pop().replace("%20", " ");
+        if (ded.includes(save)) {
+            urdone.push(url);
+            continue;
         }
 
         download(url);
@@ -62,4 +71,5 @@ br.then(async browser => {
         urdone.push(url);
         dled++;
     }
+    console.log("Downloaded " + dled + " pics");
 });
