@@ -25,9 +25,9 @@ bot.then(async browser => {
     const download = async (url, level) => {
         const parsedUrl = url.split(/\/+/);
         const dir = [];
-        const save = parsedUrl.pop().replace(/%20/g, " ");
+        const save = decodeURIComponent(parsedUrl.pop());
         for (let i = level + 1; i > 0; i--) {
-            dir.push(parsedUrl[parsedUrl.length - i].replace(/%20/g, " "));
+            dir.push(decodeURIComponent(parsedUrl[parsedUrl.length - i]));
         }
         const saveDir = `${baseDir}${dir.join("/")}`;
         let downloaded;

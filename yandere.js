@@ -57,11 +57,12 @@ br.then(async browser => {
         try {
             ded = readdirSync(baseDir);
         } catch (e) {
+            console.log({ e });
             ded = [];
             mkdirSync(baseDir);
         }
         const parsedUrl = url.split(/\/+/);
-        const save = parsedUrl.pop().replace(/%20/g, " ");
+        const save = decodeURIComponent(parsedUrl.pop());
         if (ded.includes(save)) {
             urdone.push(url);
             continue;
