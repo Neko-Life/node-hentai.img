@@ -1,6 +1,7 @@
 "use strict";
 
 const { exec } = require("child_process");
+const { readdirSync, mkdirSync } = require("fs");
 const { argv } = require("process");
 const pup = require("puppeteer");
 
