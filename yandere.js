@@ -15,7 +15,7 @@ let sk = 0;
 const pages = new Map();
 const download = async (url) => exec("cd yandere && wget --header 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0' '" + url + "'", async (t, s, e) => {
     // console.log({ t, s, e });
-    if (!t && e.match("100%")?.length) {
+    if (!t && e?.match("100%")?.length) {
         await pages[url].close();
         pages.delete(url);
         dled++;
@@ -34,7 +34,7 @@ br.then(async browser => {
     console.log("Gathering resources");
     const targets = await new Promise(async (re, rj) => {
         const res = [argv[2]];
-        const tm = setTimeout(() => re(res), 20000);
+        const tm = setTimeout(() => re(res), 30000);
         for (let i = 0; i < 1000; i++) {
             const ev = await page.evaluate(() => {
                 const ts = document.getElementsByClassName("thumb");
@@ -45,8 +45,8 @@ br.then(async browser => {
             for (const a of ev) if (!res.includes(a)) res.push(a);
             await page.keyboard.press("ArrowRight");
         }
+        outof = targets.length;
     });
-    outof = targets.length;
     console.log("Downloading " + outof + " pics");
     for (const t of targets) {
         console.log("Downloading '" + t + "'");
