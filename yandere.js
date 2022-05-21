@@ -85,5 +85,6 @@ br.then(async browser => {
         pages[url] = np;
         download(url);
     }
+    while (pages.size) await new Promise((r, j) => setTimeout(r, 5000));
     console.log("Downloaded " + dled + " pics");
 });
