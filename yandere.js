@@ -45,7 +45,7 @@ br.then(async browser => {
             for (const a of ev) if (!res.includes(a)) res.push(a);
             await page.keyboard.press("ArrowRight");
         }
-        outof = targets.length;
+        outof = res.length;
     });
     console.log("Downloading " + outof + " pics");
     for (const t of targets) {
