@@ -10,23 +10,28 @@ const baseDir = "yandere";
 
 const br = pup.launch({ headless: !argv.includes("-d") });
 let dled = 0;
+let outof = 0;
+let sk = 0;
 const pages = new Map();
 const download = async (url) => exec("cd yandere && wget --header 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0' '" + url + "'", async (t, s, e) => {
-    console.log({ t, s, e });
+    // console.log({ t, s, e });
     if (!t) {
         await pages[url].close();
         pages.delete(url);
         dled++;
+        console.log(dled + " pics downloaded out of " + outof + ", with " + sk + " skipped");
     } else download(url);
 });
 
 br.then(async browser => {
+    console.log("Starting up");
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0");
     await page.goto(argv[2]);
 
     await page.waitForTimeout(3000);
 
+    console.log("Gathering resources");
     const targets = await new Promise(async (re, rj) => {
         const res = [argv[2]];
         const tm = setTimeout(() => re(res), 20000);
@@ -41,15 +46,15 @@ br.then(async browser => {
             await page.keyboard.press("ArrowRight");
         }
     });
-    console.log(targets);
-    console.log(targets.length);
+    outof = targets.length;
+    console.log("Downloading " + outof + " pics");
     for (const t of targets) {
         console.log("Downloading '" + t + "'");
         const np = await browser.newPage();
         await np.setUserAgent("Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0");
         await np.goto(t);
         const eva = async () => {
-            await np.waitForTimeout(200);
+            await np.waitForTimeout(500);
             return np.evaluate(() => {
                 let d = document.getElementsByClassName("download-png")[0].href;
                 if (d.endsWith("#")) d = document.getElementsByClassName("main-image")[0]?.src;
@@ -58,8 +63,6 @@ br.then(async browser => {
             });
         };
         let url = await eva();
-
-        console.log(url);
 
         while (!url || url.endsWith("#")) {
             console.error("Can't get src for " + t);
@@ -79,12 +82,12 @@ br.then(async browser => {
         const save = decodeURIComponent(parsedUrl.pop());
         if (ded.includes(save)) {
             np.close();
+            sk++;
+            console.log("Skipping " + url + " as it already downloaded");
             continue;
         }
 
         pages[url] = np;
         download(url);
     }
-    while (pages.size) await new Promise((r, j) => setTimeout(r, 5000));
-    console.log("Downloaded " + dled + " pics");
 });
