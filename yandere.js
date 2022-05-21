@@ -47,8 +47,13 @@ br.then(async browser => {
         await page.goto(t);
         await page.waitForTimeout(10000);
         const url = await page.evaluate(() => {
-            return document.getElementsByClassName("download-png")[0].href;
+            return document.getElementsByClassName("download-png")?.[0]?.href || document.getElementsByClassName("main-image")?.[0]?.src;
         });
+
+        if (!url) {
+            console.error("Can't get src for " + t);
+            continue;
+        }
 
         let ded;
 
