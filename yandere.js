@@ -10,7 +10,7 @@ const baseDir = "yandere";
 
 let wait_t = 30;
 
-if (!argv[argv.length() - 1].match(/\D/)?.length) wait_t = parseInt(argv[argv.length() - 1], 10);
+if (!argv[argv.length - 1].match(/\D/)?.length) wait_t = parseInt(argv[argv.length - 1], 10);
 console.log("Resource gathering time: " + wait_t + " seconds");
 
 const br = pup.launch({ headless: !argv.includes("-d") });
