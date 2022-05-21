@@ -8,6 +8,11 @@ const pup = require("puppeteer");
 const BASE_URL = "https://yande.re";
 const baseDir = "yandere";
 
+let wait_t = 30;
+
+if (!argv[argv.length() - 1].match(/\D/)?.length) wait_t = parseInt(argv[argv.length() - 1], 10);
+console.log("Resource gathering time: " + wait_t + " seconds");
+
 const br = pup.launch({ headless: !argv.includes("-d") });
 let dled = 0;
 let outof = 0;
@@ -38,7 +43,7 @@ br.then(async browser => {
         const tm = setTimeout(() => {
             st = true;
             re(res);
-        }, 30000);
+        }, wait_t * 1000);
         while (!st) {
             const ev = await page.evaluate(() => {
                 const ts = document.getElementsByClassName("thumb");
