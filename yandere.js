@@ -41,7 +41,6 @@ br.then(async browser => {
     console.log(targets);
     console.log(targets.length);
     let dled = 0;
-    const urdone = [];
     for (const t of targets) {
         const oo = o;
         console.log("Downloading '" + t + "'");
@@ -50,7 +49,6 @@ br.then(async browser => {
         const url = await page.evaluate(() => {
             return document.getElementsByClassName("download-png")[0].href;
         });
-        if (urdone.includes(url)) continue;
 
         let ded;
 
@@ -63,14 +61,10 @@ br.then(async browser => {
         }
         const parsedUrl = url.split(/\/+/);
         const save = decodeURIComponent(parsedUrl.pop());
-        if (ded.includes(save)) {
-            urdone.push(url);
-            continue;
-        }
+        if (ded.includes(save)) continue;
 
         download(url);
         while (oo == o) await new Promise((r, j) => setTimeout(r, 1000));
-        urdone.push(url);
         dled++;
     }
     console.log("Downloaded " + dled + " pics");
