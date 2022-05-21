@@ -34,8 +34,12 @@ br.then(async browser => {
     console.log("Gathering resources");
     const targets = await new Promise(async (re, rj) => {
         const res = [argv[2]];
-        const tm = setTimeout(() => re(res), 30000);
-        for (let i = 0; i < 1000; i++) {
+        let st;
+        const tm = setTimeout(() => {
+            st = true;
+            re(res);
+        }, 30000);
+        while (!st) {
             const ev = await page.evaluate(() => {
                 const ts = document.getElementsByClassName("thumb");
                 const ret = [];
@@ -45,8 +49,8 @@ br.then(async browser => {
             for (const a of ev) if (!res.includes(a)) res.push(a);
             await page.keyboard.press("ArrowRight");
         }
-        outof = res.length;
     });
+    outof = targets.length;
     console.log("Downloading " + outof + " pics");
     for (const t of targets) {
         console.log("Downloading '" + t + "'");
