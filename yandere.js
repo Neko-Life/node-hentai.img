@@ -15,7 +15,7 @@ let sk = 0;
 const pages = new Map();
 const download = async (url) => exec("cd yandere && wget --header 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0' '" + url + "'", async (t, s, e) => {
     // console.log({ t, s, e });
-    if (!t) {
+    if (!t && e.match("100%")?.length) {
         await pages[url].close();
         pages.delete(url);
         dled++;
@@ -57,7 +57,9 @@ br.then(async browser => {
             await np.waitForTimeout(500);
             return np.evaluate(() => {
                 let d = document.getElementsByClassName("download-png")[0].href;
-                if (d.endsWith("#")) d = document.getElementsByClassName("main-image")[0]?.src;
+                if (!d || d.endsWith("#")) d = document.getElementsByClassName("download-jpeg")[0].href;
+                if (!d || d.endsWith("#")) d = document.getElementsByClassName("download-image")[0]?.href;
+                if (!d || d.endsWith("#")) d = document.getElementsByClassName("main-image")[0]?.src;
                 console.log(d);
                 return d;
             });
@@ -69,7 +71,7 @@ br.then(async browser => {
             url = await eva();
         }
 
-        let ded;
+        let ded = [];
 
         try {
             ded = readdirSync(baseDir);
