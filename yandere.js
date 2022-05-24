@@ -149,11 +149,20 @@ br.then(async browser => {
             });
         };
         let url = await eva();
+        let fail = 0;
 
         while (!url || url.endsWith("#")) {
             console.error("Can't get src for " + t);
+            if (fail > 10) {
+                console.error("Can't download " + t + ", skipping");
+                url = null;
+                break;
+            }
+            fail++;
             url = await eva();
         }
+        fail = 0;
+        if (!url) continue;
 
         let ded = [];
 
