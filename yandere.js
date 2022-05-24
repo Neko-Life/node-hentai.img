@@ -32,14 +32,12 @@ let dled = 0;
 let outof = 0;
 let sk = 0;
 const pages = new Map();
-const done = [];
 
 let running = true;
 
 const download = async (url, save) => exec("cd yandere && wget --header 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0' '" + url + "'", async (t, s, e) => {
     // console.log({ t, s, e });
     if (!t && e?.match("100%")?.length) {
-        done.push(save);
         await pages.get(url).close();
         pages.delete(url);
         dled++;
@@ -55,7 +53,7 @@ const download = async (url, save) => exec("cd yandere && wget --header 'User-Ag
         }
         if (!running) {
             console.log("Cancelling download for " + save);
-            done.push(save);
+            sk++;
             await pages.get(url).close();
             pages.delete(url);
             return;
