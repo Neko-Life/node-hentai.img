@@ -10,15 +10,15 @@ const BASE_URL = "https://yande.re";
 const baseDir = "yandere";
 
 if (!/^https:\/\/yande\.re\/post\/browse#\d{6}\//.test(argv[2] || "")) {
-    console.error("Usage: <URL> [(-d|--head|--no-headless)] <[number of concurrent download] [resource gathering time in second]>\nExample: \"node yandere.js 'https://yande.re/post/browse#833126/wardrobe_malfunction' -d 4 60\"");
+    console.error("Usage: <URL> [(-d|--head|--no-headless)] <[resource gathering time in second] [number of concurrent download]>\nExample: \"node yandere.js 'https://yande.re/post/browse#833126/wardrobe_malfunction' -d 4 60\"");
     process.exit(["--help", "-h"].some(r => argv.includes(r)) ? 0 : 1);
 }
 
 let wait_t = 30;
 let concurrent = 1;
 
-if (!argv[argv.length - 1].match(/\D/)?.length) wait_t = parseInt(argv[argv.length - 1], 10);
-if (!argv[argv.length - 2].match(/\D/)?.length) concurrent = parseInt(argv[argv.length - 2], 10);
+if (!argv[argv.length - 2].match(/\D/)?.length) wait_t = parseInt(argv[argv.length - 2], 10);
+if (!argv[argv.length - 1].match(/\D/)?.length) concurrent = parseInt(argv[argv.length - 1], 10);
 console.log("Resource gathering time: " + wait_t + " seconds");
 console.log("Number of concurrent download: " + concurrent);
 if (concurrent > 5) console.warn("[WARNING] Larger number of concurrent download pose higher risk of corrupted download and more error prone, consider lowering number of concurrent download");
