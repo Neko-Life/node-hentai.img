@@ -162,7 +162,11 @@ br.then(async browser => {
             url = await eva();
         }
         fail = 0;
-        if (!url) continue;
+        if (!url) {
+            await np.close();
+            sk++;
+            continue;
+        }
 
         let ded = [];
 
