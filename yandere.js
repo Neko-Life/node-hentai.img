@@ -9,7 +9,7 @@ const pup = require("puppeteer");
 const BASE_URL = "https://yande.re";
 const baseDir = "yandere";
 
-if (!/^https:\/\/yande\.re\/post\/browse#\d{6}\//.test(argv[2] || "")) {
+if (!/^https:\/\/yande\.re\/post\/browse#(?:\d{6})?\//.test(argv[2] || "")) {
     console.error("Usage: <URL> [(-d|--head|--no-headless)] <[resource gathering time in second] [number of concurrent download]>\nExample: \"node yandere.js 'https://yande.re/post/browse#833126/wardrobe_malfunction' -d 4 60\"");
     process.exit(["--help", "-h"].some(r => argv.includes(r)) ? 0 : 1);
 }
